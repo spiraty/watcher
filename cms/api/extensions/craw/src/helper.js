@@ -1,15 +1,22 @@
 export const parseTiktok = (str) => {
 	try {
 		const json = JSON.parse(str);
-		const stats = json['__DEFAULT_SCOPE__']['webapp.video-detail']['itemInfo']['itemStruct']['statsV2'];
+		const vidInfo = json['__DEFAULT_SCOPE__']['webapp.video-detail']['itemInfo']['itemStruct'];
+		const stats = vidInfo['statsV2'];
 
 		if (typeof stats !== 'object') throw new Error('cant read stats');
 
+		// good for now
 		return {
 			view: stats?.playCount,
 			like: stats?.diggCount,
 			share: stats?.shareCount,
 			comment: stats?.commentCount,
+			title: vidInfo?.desc,
+			chanelUrl: vidInfo['author']['uniqueId'],
+			chanelName: '@' + vidInfo['author']['nickname'],
+			posted_at: dbDate(vidInfo?.createTime * 100),
+			duration: vidInfo['video']['duration'],
 		};
 	} catch (e) {
 		console.log('parseTiktok error: ', e);
@@ -20,28 +27,76 @@ export const parseTiktok = (str) => {
 export const parseYoutube = (str) => {
 	try {
 		if (!str) throw new Error('Invalid str parameter value');
+		let pattern = /(var ytInitialPlayerResponse =)(.*?)(};<\/script>)/gi;
+		let result = str.match(pattern)[0].replace(/var ytInitialPlayerResponse =|;<\/script>/gi, '');
+		let json = JSON.parse(result);
 
-		const pattern = /(\[{"factoidRenderer)(.*)("}}\],"channelNavigationEndpoint)/;
-		const result = str.match(pattern)[0].replace(',"channelNavigationEndpoint', '');
-		const json = JSON.parse(result);
+		const title = json['videoDetails']['title'];
+		const view = json['videoDetails']['viewCount'];
+
+		const chanelName = json['videoDetails']['author'];
+
+		const chanelUrl = json['microformat']['playerMicroformatRenderer']['ownerProfileUrl'].replace(
+			'http://www.youtube.com/',
+			'',
+		);
+
+		const posted_at = dbDate(json['microformat']['playerMicroformatRenderer']['publishDate']);
+		const duration = json['videoDetails']['lengthSeconds'];
+
+		// read like count
+		pattern = /(\[{"factoidRenderer)(.*)("}}\],"channelNavigationEndpoint)/;
+		result = str.match(pattern)[0].replace(',"channelNavigationEndpoint', '');
+		json = JSON.parse(result);
 		if (json.length < 2) throw new Error('Cant read info from youtube response html correctly');
+		const txtLike = json[0]['factoidRenderer']['value']['simpleText'];
 
-		const objLike = json[0];
-		const objView = json[1];
-
-		const txtView = objView['factoidRenderer']['value']['simpleText'];
-		const txtLike = objLike['factoidRenderer']['value']['simpleText'];
+		const share = 0;
+		const comment = 0;
 
 		return {
-			view: reverseNum(txtView),
+			view,
 			like: reverseRounded(txtLike),
-			share: 0,
-			comment: 0,
+			share,
+			comment,
+			title,
+			chanelUrl,
+			chanelName,
+			posted_at,
+			duration,
 		};
 	} catch (e) {
-		console.log('parseYoutube error: ', e);
+		console.log(e);
+		return null;
 	}
 };
+
+// export const parseYoutube_ = (str) => {
+// 	try {
+// 		if (!str) throw new Error('Invalid str parameter value');
+
+// 		const pattern = /(\[{"factoidRenderer)(.*)("}}\],"channelNavigationEndpoint)/;
+// 		const result = str.match(pattern)[0].replace(',"channelNavigationEndpoint', '');
+// 		const json = JSON.parse(result);
+// 		if (json.length < 2) throw new Error('Cant read info from youtube response html correctly');
+
+// 		const objLike = json[0];
+// 		const objView = json[1];
+
+// 		const txtView = objView['factoidRenderer']['value']['simpleText'];
+// 		const txtLike = objLike['factoidRenderer']['value']['simpleText'];
+
+// 		return {
+// 			view: reverseNum(txtView),
+// 			like: reverseRounded(txtLike),
+// 			share: 0,
+// 			comment: 0,
+// 		};
+// 	} catch (e) {
+// 		console.log('parseYoutube error: ', e);
+// 		return null;
+// 	}
+// };
 
 export const dbDate = (str) => {
 	let date = null;

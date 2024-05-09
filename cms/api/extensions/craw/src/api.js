@@ -35,7 +35,7 @@ const crawData = async (url, platform_id) => {
 
 export default {
 	id: 'spiraty-craw',
-	handler: async ({ prevent_recents }, { data, services, database: db, accountability, getSchema }) => {
+	handler: async ({ prevent_recents }, { data, database: db, accountability }) => {
 		try {
 			// video ids
 			const ids = data['$trigger']?.body?.keys;
@@ -87,6 +87,12 @@ export default {
 						views: data?.view,
 						likes: data?.like,
 						scanned_at,
+						posted_at: data?.posted_at,
+						Title: data?.title,
+						chanel_name: data?.chanelName,
+						chanel_url: data?.chanelUrl,
+						duration: data?.duration,
+						status: 'published',
 					});
 
 					// insert into record
