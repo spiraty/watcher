@@ -34,29 +34,23 @@ const crawData = async (url, platform_id) => {
 };
 
 export default {
-	id: 'spiraty-craw',
-	handler: async ({ prevent_recents }, { data, database: db, accountability }) => {
+	id: 'spiraty-trigg',
+	handler: async ({ operation_comment }, { data, database: db, accountability }) => {
 		try {
-			// video ids
-			const ids = data['$trigger']?.body?.keys;
-
-			if (!Array.isArray(ids) || ids.length === 0) throw new Error('Invalid payload data');
+			// video id
+			const id = data['$trigger']?.key;
 
 			// query videos data
 			let vids = await db
 				.select('scanned_at', 'platform_id', 'video_code', 'chanel_url', 'video_id', 'status')
 				.from('Video')
-				.whereIn('video_id', ids);
+				.where('video_id', id);
 
 			if (!Array.isArray(vids) || vids.length === 0) throw new Error('Empty data retrieve');
 
-			// filter video to craw
-			if (prevent_recents > 0) {
-				const period_limit = prevent_recents * 60000;
-
+			if (id > 0) {
 				vids = vids.filter((el) => {
 					return (
-						(el?.scanned_at === null || new Date().getTime() - new Date(el?.scanned_at).getTime() > period_limit) &&
 						el?.status === 'published' &&
 						el?.platform_id > 0 &&
 						el?.video_code &&
@@ -82,7 +76,7 @@ export default {
 				for (let i = 0; i < vids.length; i++) {
 					const data = await crawData(vids[i]?.url, vids[i]?.platform_id);
 
-					if (data != null && typeof data == 'object' && typeof data['view'] != 'undefined') {
+					if (data !== null && typeof data === 'object' && typeof data['view'] !== 'undefined') {
 						// update current video
 						await db('Video').where('video_id', vids[i]?.video_id).update({
 							views: data?.view,

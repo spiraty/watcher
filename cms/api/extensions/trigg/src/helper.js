@@ -4,9 +4,7 @@ export const parseTiktok = (str) => {
 		const vidInfo = json['__DEFAULT_SCOPE__']['webapp.video-detail']['itemInfo']['itemStruct'];
 		const stats = vidInfo['statsV2'];
 
-		if (stats == undefined || typeof stats != 'object' || typeof stats['playCount'] == 'undefined') {
-			throw new Error('cant read stats');
-		}
+		if (typeof stats !== 'object' || typeof stats['playCount'] === 'undefined') throw new Error('cant read stats');
 
 		// good for now
 		return {

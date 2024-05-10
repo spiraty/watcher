@@ -1,23 +1,28 @@
 {
-	"name": "scanner",
-	"description": "Make http request to Youtube and Tiktok to retrieve video info",
+	"name": "trigg",
+	"description": "Actiont to trigger when a video is just created",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [
 		"directus",
 		"directus-extension",
-		"directus-extension-module"
+		"directus-extension-operation"
 	],
 	"type": "module",
 	"files": [
 		"dist"
 	],
 	"directus:extension": {
-		"type": "module",
-		"path": "dist/index.js",
-		"source": "src/index.js",
-		"host": "^10.10.0",
-		"hidden": false
+		"type": "operation",
+		"path": {
+			"app": "dist/app.js",
+			"api": "dist/api.js"
+		},
+		"source": {
+			"app": "src/app.js",
+			"api": "src/api.js"
+		},
+		"host": "^10.10.0"
 	},
 	"scripts": {
 		"build": "directus-extension build",
@@ -29,6 +34,6 @@
 		"vue": "^3.4.26"
 	},
 	"dependencies": {
-		"sass": "^1.76.0"
+		"node-html-parser": "^6.1.13"
 	}
 }
