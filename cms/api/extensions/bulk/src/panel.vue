@@ -86,14 +86,14 @@ export default {
 						const item = {};
 
 						if (link.match(ytPattern)) {
-							item.platform_id = 1;
+							item.platform = 1;
 							// get the video id
 							const test = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
 							const matcher = link.match(test);
-							if (typeof matcher[2] !== 'undefined') item.video_code = matcher[2];
+							if (typeof matcher[2] !== 'undefined') item.code = matcher[2];
 							item.url = link;
 						} else if (link.match(ttPattern)) {
-							item.platform_id = 2;
+							item.platform = 2;
 
 							const test =
 								/^.*https:\/\/(?:m|www|vm)?\.?tiktok\.com\/((?:.*\b(?:(?:usr|v|embed|user|video)\/|\?shareId=|\&item_id=)(\d+))|\w+)/;
@@ -101,8 +101,8 @@ export default {
 							const matcher = link.match(test);
 
 							if (typeof matcher[2] !== 'undefined') {
-								item.video_code = matcher[2];
-								item.chanel_url = 'https://www.tiktok.com/' + matcher[1].substring(0, matcher[1].indexOf('/'));
+								item.code = matcher[2];
+								item.channel_url = 'https://www.tiktok.com/' + matcher[1].substring(0, matcher[1].indexOf('/'));
 							}
 
 							item.url = link;
@@ -141,10 +141,10 @@ export default {
 					links.forEach((item) => {
 						api
 							.post(`/items/Video`, {
-								section_id: secId,
-								chanel_url: item?.chanel_url,
-								platform_id: item?.platform_id,
-								video_code: item?.video_code,
+								section: secId,
+								channel_url: item?.channel_url,
+								platform: item?.platform,
+								code: item?.code,
 								status: 'published',
 							})
 							.then((response) => {

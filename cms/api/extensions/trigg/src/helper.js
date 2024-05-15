@@ -1,3 +1,22 @@
+export const toTime = (num) => {
+	if (num > 0) {
+		var hours = Math.floor(num / 3600);
+		var mins = Math.floor((num % 3600) / 60);
+		var sec = num % 60;
+
+		let dur = sec;
+		if (mins > 0 && mins < 10) dur = '0' + mins + ':' + dur;
+		else if (mins >= 10) dur = mins + ':' + dur;
+
+		if (hours > 0 && hours < 10) dur = '0' + hours + ':' + dur;
+		else if (hours >= 10) dur = hours + ':' + dur;
+
+		return dur;
+	}
+
+	return 0;
+};
+
 export const parseTiktok = (str) => {
 	try {
 		const json = JSON.parse(str);

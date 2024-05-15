@@ -1,8 +1,8 @@
 // import { crawData } from './helper';
 import { parse } from 'node-html-parser';
-import { dbDate, parseTiktok, parseYoutube } from './helper';
+import { dbDate, parseTiktok, parseYoutube, toTime } from './helper';
 
-const crawData = async (url, platform_id) => {
+const crawData = async (url, platform) => {
 	try {
 		const response = await fetch(url, {
 			'User-Agent':
@@ -13,9 +13,9 @@ const crawData = async (url, platform_id) => {
 			const html = await response.text();
 			let stats = null;
 
-			if (platform_id === 1) {
+			if (platform === 1) {
 				stats = parseYoutube(html);
-			} else if (platform_id === 2) {
+			} else if (platform === 2) {
 				const dom = parse(html);
 				const jsonScript = dom.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
 				if (typeof jsonScript !== 'object') throw new Error('cant find tiktok REHYDRATION tag');
@@ -44,7 +44,7 @@ export default {
 
 			// query videos data
 			let vids = await db
-				.select('scanned_at', 'platform_id', 'video_code', 'chanel_url', 'video_id', 'status')
+				.select('scanned_at', 'platform', 'code', 'channel_url', 'video_id', 'status')
 				.from('Video')
 				.whereIn('video_id', ids);
 
@@ -58,9 +58,9 @@ export default {
 					return (
 						(el?.scanned_at === null || new Date().getTime() - new Date(el?.scanned_at).getTime() > period_limit) &&
 						el?.status === 'published' &&
-						el?.platform_id > 0 &&
-						el?.video_code &&
-						(el?.chanel_url || el?.platform_id == 1)
+						el?.platform > 0 &&
+						el?.code &&
+						(el?.channel_url || el?.platform == 1)
 					);
 				});
 			}
@@ -69,9 +69,7 @@ export default {
 				// make the video url
 				vids = vids.map((el) => {
 					el['url'] =
-						el?.platform_id === 1
-							? 'https://www.youtube.com/watch?v=' + el?.video_code
-							: el?.chanel_url + '/video/' + el?.video_code;
+						el?.platform == 1 ? 'https://www.youtube.com/watch?v=' + el?.code : el?.channel_url + '/video/' + el?.code;
 
 					return el;
 				});
@@ -80,37 +78,39 @@ export default {
 
 				// scan and parse the info
 				for (let i = 0; i < vids.length; i++) {
-					const data = await crawData(vids[i]?.url, vids[i]?.platform_id);
+					const data = await crawData(vids[i]?.url, vids[i]?.platform);
 
 					if (data != null && typeof data == 'object' && typeof data['view'] != 'undefined') {
 						// update current video
-						await db('Video').where('video_id', vids[i]?.video_id).update({
-							views: data?.view,
-							likes: data?.like,
-							scanned_at,
-							posted_at: data?.posted_at,
-							title: data?.title,
-							chanel_name: data?.chanelName,
-							chanel_url: data?.chanelUrl,
-							duration: data?.duration,
-							status: 'published',
-						});
+						await db('Video')
+							.where('video_id', vids[i]?.video_id)
+							.update({
+								views: data?.view,
+								likes: data?.like,
+								scanned_at,
+								posted_at: data?.posted_at,
+								title: data?.title,
+								channel_name: data?.chanelName,
+								channel_url: data?.chanelUrl,
+								duration: toTime(data?.duration),
+								status: 'published',
+							});
 
 						// insert into record
-						await db('Record').insert({
-							video_id: vids[i]?.video_id,
-							views: data?.view,
-							likes: data?.like,
-							scanned_at,
-							date_created: scanned_at,
-							user_created: accountability.user,
-						});
+						// await db('Record').insert({
+						// 	video_id: vids[i]?.video_id,
+						// 	views: data?.view,
+						// 	likes: data?.like,
+						// 	scanned_at,
+						// 	date_created: scanned_at,
+						// 	user_created: accountability.user,
+						// });
 					} else {
 						// turn video into archive mode
-						await db('Video').where('video_id', vids[i]?.video_id).update({
-							status: 'archived',
-							title: 'Invalid video code or private video!',
-						});
+						// await db('Video').where('video_id', vids[i]?.video_id).update({
+						// 	status: 'archived',
+						// 	title: 'Invalid video code or private video!',
+						// });
 					}
 				}
 			}
