@@ -119,42 +119,55 @@ export default {
 			}
 		}
 
-		function submitLinks() {
+		async function submitLinks() {
 			linkImported.value = 0;
 			importErrors.value = [];
 
 			const links = parseLink(txtLinks.value);
 			linkInputed.value = links.length;
 
-			links.forEach((item) => {
-				api
-					.post(`/items/Video`, {
-						section_id: section_id.value,
-						chanel_url: item?.chanel_url,
-						platform_id: item?.platform_id,
-						video_code: item?.video_code,
-						status: 'published',
-					})
-					.then((response) => {
-						if (response?.status == 200) {
-							linkImported.value += 1;
-						} else {
-							importErrors.value.push({
-								url: item?.url,
-								error: {
-									code: response.data.code,
-									message: response.data.message,
-								},
+			if (Array.isArray(links)) {
+				// check to create new section
+				let secId = null;
+				if (isNaN(section_id.value) && (typeof section_id.value === 'string' || section_id.value instanceof String)) {
+					const response = await api.post('/items/Section', { name: section_id.value.trim() });
+
+					if (response?.status == 200) {
+						secId = response.data?.data?.section_id;
+					}
+				} else secId = section_id.value;
+
+				secId > 0 &&
+					links.forEach((item) => {
+						api
+							.post(`/items/Video`, {
+								section_id: secId,
+								chanel_url: item?.chanel_url,
+								platform_id: item?.platform_id,
+								video_code: item?.video_code,
+								status: 'published',
+							})
+							.then((response) => {
+								if (response?.status == 200) {
+									linkImported.value += 1;
+								} else {
+									importErrors.value.push({
+										url: item?.url,
+										error: {
+											code: response.data.code,
+											message: response.data.message,
+										},
+									});
+								}
+							})
+							.catch((error) => {
+								importErrors.value.push({
+									url: item?.url,
+									error,
+								});
 							});
-						}
-					})
-					.catch((error) => {
-						importErrors.value.push({
-							url: item?.url,
-							error,
-						});
 					});
-			});
+			}
 
 			return;
 		}
@@ -173,8 +186,8 @@ export default {
 		<v-select
 			:model-value="section_id"
 			:items="sections"
-			placeholder="Select section"
-			:allow-other="false"
+			placeholder="Chọn Section"
+			:allow-other="true"
 			:close-on-content-click
 			:value="section_id"
 			@update:model-value="updateSection($event)"
@@ -188,7 +201,7 @@ export default {
 			"
 		>
 			<template #activator="{ on }">
-				<v-button v-if="section_id != undefined && section_id > 0 && txtLinks != ''" @click="on">
+				<v-button v-if="section_id != undefined && txtLinks != undefined && linkInputed > 0" @click="on">
 					{{ buttonLabel }}
 				</v-button>
 				<v-button v-else secondary disabled>{{ buttonLabel }}</v-button>
