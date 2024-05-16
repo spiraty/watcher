@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/prefer-true-attribute-shorthand -->
 <!-- eslint-disable no-console -->
 <script>
 import { useApi } from '@directus/extensions-sdk';

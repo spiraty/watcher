@@ -1,4 +1,5 @@
-// import { crawData } from './helper';
+/* eslint-disable no-empty-pattern */
+/* eslint-disable no-console */
 import { parse } from 'node-html-parser';
 import { dbDate, parseTiktok, parseYoutube, toTime } from './helper';
 
@@ -35,7 +36,7 @@ const crawData = async (url, platform) => {
 
 export default {
 	id: 'spiraty-trigg',
-	handler: async ({ operation_comment }, { data, database: db, accountability }) => {
+	handler: async ({}, { data, database: db }) => {
 		try {
 			// video id
 			const id = data['$trigger']?.key;
@@ -58,7 +59,9 @@ export default {
 				// make the video url
 				vids = vids.map((el) => {
 					el['url'] =
-						el?.platform == 1 ? 'https://www.youtube.com/watch?v=' + el?.code : el?.channel_url + '/video/' + el?.code;
+						el?.platform == 1
+							? 'https://www.youtube.com/watch?v=' + el?.code
+							: 'https://www.tiktok.com/@' + el?.channel_url + '/video/' + el?.code;
 
 					return el;
 				});

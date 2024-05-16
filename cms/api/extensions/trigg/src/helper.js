@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 export const toTime = (num) => {
 	if (num > 0) {
 		var hours = Math.floor(num / 3600);
@@ -34,7 +35,7 @@ export const parseTiktok = (str) => {
 			title: vidInfo?.desc,
 			chanelUrl: vidInfo['author']['uniqueId'],
 			chanelName: '@' + vidInfo['author']['nickname'],
-			posted_at: dbDate(vidInfo?.createTime * 100),
+			posted_at: dbDate(vidInfo?.createTime * 1000),
 			duration: vidInfo['video']['duration'],
 		};
 	} catch (e) {

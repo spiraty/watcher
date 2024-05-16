@@ -5,7 +5,7 @@ export default {
 	description: 'Export videos in section to CSV',
 	overview: ({ archived }) => [
 		{
-			label: 'Archived include?',
+			label: 'Including archived items?',
 			text: archived,
 		},
 	],
@@ -13,13 +13,22 @@ export default {
 		{
 			field: 'archived',
 			name: 'Archived include?',
-			type: 'Boolean',
-			schema: {
-				default_value: true,
-			},
+			type: 'string',
 			meta: {
 				width: 'full',
-				interface: 'input',
+				interface: 'select-dropdown',
+				options: {
+					choices: [
+						{
+							text: 'No',
+							value: 'No',
+						},
+						{
+							text: 'Yes',
+							value: 'Yes',
+						},
+					],
+				},
 			},
 		},
 	],

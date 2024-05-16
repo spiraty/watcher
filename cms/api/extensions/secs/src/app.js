@@ -3,17 +3,18 @@ export default {
 	name: 'Spiraty Section Craw',
 	icon: 'query_stats',
 	description: 'Scan data of all videos in section',
-	overview: ({ text }) => [
+	overview: ({ prevent_recents }) => [
 		{
-			label: 'Text',
-			text: text,
+			label: 'Prevent recents (in minute)',
+			text: prevent_recents,
 		},
 	],
 	options: [
 		{
-			field: 'text',
-			name: 'Text',
-			type: 'string',
+			field: 'prevent_recents',
+			name: 'Prevent recents (in minute)',
+			type: 'number',
+			default: 15,
 			meta: {
 				width: 'full',
 				interface: 'input',

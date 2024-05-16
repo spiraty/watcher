@@ -32,5 +32,8 @@
 	"devDependencies": {
 		"@directus/extensions-sdk": "11.0.4",
 		"vue": "^3.4.27"
+	},
+	"dependencies": {
+		"node-html-parser": "^6.1.13"
 	}
 }
