@@ -54,7 +54,7 @@ export default {
 			await exportService.exportToFile('Video', { fields, filter, sort }, 'csv', { file });
 
 			// download file
-			open(`${env?.PUBLIC_URL}/assets/${file?.id}?download`, '_blank', `${file?.filename_disk}`);
+			await open(`${env?.PUBLIC_URL}/assets/${file?.id}?download`, '_blank', `${file?.filename_disk}`);
 		} catch (e) {
 			console.log('spiraty-sece error: ', e);
 		}
