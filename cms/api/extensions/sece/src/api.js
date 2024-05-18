@@ -1,26 +1,28 @@
 /* eslint-disable no-console */
+import { randomUUID } from 'node:crypto';
+import { dbDate, slugify } from './helper';
+import open from 'open';
 
 export default {
 	id: 'spiraty-sece',
-	handler: async ({ archived }, { data, services, database: db, accountability, getSchema }) => {
+	handler: async ({ archived }, { data, services, database: db, accountability, getSchema, env }) => {
 		try {
+			// processed section
 			const section_id = data['$trigger'].body?.keys[0];
-			// craw new data
 			if (isNaN(section_id) || section_id < 1) throw new Error('Invalid payload data');
 
-			const fields = [
-				'code',
-				'title',
-				'views',
-				'likes',
-				'duration',
-				'scanned_at',
-				'platform.Title',
-				'section.name',
-				'channel_url',
-				'channel_name',
-			];
+			// query section info
+			const section = await db('Section').where({ section_id }).first();
 
+			// query the display fields of relation
+			const relation = await db('directus_fields').where({ collection: 'Section', field: 'videos' }).first();
+			let fields = JSON.parse(relation.options)?.fields;
+
+			// platform and section append
+			fields = fields.map((el) => (el == 'platform' ? 'platform.Title' : el));
+			fields.push('section.name');
+
+			// video items filter
 			const filter = { section: { _eq: section_id } };
 
 			if (archived == 'No') {
@@ -29,13 +31,30 @@ export default {
 				fields.push('status');
 			}
 
+			// sort by date_created DESC
+			const sort = ['-date_created'];
+
+			// process export/download
 			const { ExportService } = services;
 			const schema = await getSchema({ db });
-
 			const exportService = new ExportService({ schema, accountability, knex: db });
 
-			// Video?limit=1000&fields[]=status&fields[]=views&fields[]=likes&fields[]=posted_at&fields[]=title&fields[]=scanned_at&fields[]=platform.Title&fields[]=platform.platform_id&fields[]=section.name&fields[]=section.section_id&fields[]=duration&fields[]=channel_url&fields[]=video_id&sort[]=-likes&page=1&filter[status][_neq]=archived
-			exportService.exportToFile('Video', { fields, filter }, 'csv');
+			// file info
+			const title = `export-section-${slugify(section.name)}-${dbDate()}`;
+
+			const file = {
+				id: randomUUID(),
+				title,
+				filename_disk: `${title}.csv`,
+				filename_download: `${title}.csv`,
+				charset: 'utf-8',
+				description: section?.description,
+			};
+
+			await exportService.exportToFile('Video', { fields, filter, sort }, 'csv', { file });
+
+			// download file
+			open(`${env?.PUBLIC_URL}/assets/${file?.id}?download`, '_blank', `${file?.filename_disk}`);
 		} catch (e) {
 			console.log('spiraty-sece error: ', e);
 		}

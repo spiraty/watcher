@@ -32,5 +32,8 @@
 	"devDependencies": {
 		"@directus/extensions-sdk": "11.0.4",
 		"vue": "^3.4.27"
+	},
+	"dependencies": {
+		"open": "^10.1.0"
 	}
 }
