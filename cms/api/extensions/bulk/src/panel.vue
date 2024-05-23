@@ -89,7 +89,7 @@ export default {
 						if (link.match(ytPattern)) {
 							item.platform = 1;
 							// get the video id
-							const test = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+							const test = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
 							const matcher = link.match(test);
 							if (typeof matcher[2] !== 'undefined') item.code = matcher[2];
 							item.url = link;
@@ -138,16 +138,29 @@ export default {
 					}
 				} else secId = section_id.value;
 
+				let lastVidId = 0;
+				// fetch the bigest video id
+				const response = await api.get('/items/Video?sort=-video_id&limit=1&fields[]=video_id');
+
+				if (response?.status == 200) {
+					lastVidId = response.data?.data[0]?.video_id;
+				}
+
 				secId > 0 &&
-					links.forEach((item) => {
+					links.forEach((item, idx) => {
+						const objVid = {
+							section: secId,
+							channel_url: item?.channel_url,
+							platform: item?.platform,
+							code: item?.code,
+							status: 'published',
+						};
+
+						// assign video id
+						if (lastVidId > 0) objVid['video_id'] = lastVidId + idx + 1;
+
 						api
-							.post(`/items/Video`, {
-								section: secId,
-								channel_url: item?.channel_url,
-								platform: item?.platform,
-								code: item?.code,
-								status: 'published',
-							})
+							.post(`/items/Video`, objVid)
 							.then((response) => {
 								if (response?.status == 200) {
 									linkImported.value += 1;
