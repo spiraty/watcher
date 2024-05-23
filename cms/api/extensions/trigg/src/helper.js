@@ -77,6 +77,14 @@ export const parseYoutube = (str) => {
 			json = JSON.parse(result);
 			if (json.length < 2) throw new Error('Cant read info from youtube response html correctly');
 			txtLike = json[0]['factoidRenderer']['value']['simpleText'];
+		} else {
+			//"iconName":"LIKE","title":"
+			const from = str.indexOf('"iconName":"LIKE","title":"');
+
+			if (from > -1) {
+				const to = str.indexOf('"', from + 27);
+				txtLike = str.substring(from + 27, to);
+			}
 		}
 
 		const share = 0;
