@@ -1,11 +1,10 @@
 /* eslint-disable no-console */
 import { randomUUID } from 'node:crypto';
 import { dbDate, slugify } from './helper';
-import open from 'open';
 
 export default {
 	id: 'spiraty-sece',
-	handler: async ({ archived }, { data, services, database: db, accountability, getSchema, env }) => {
+	handler: async ({ archived }, { data, services, database: db, accountability, getSchema }) => {
 		try {
 			// processed section
 			const section_id = data['$trigger'].body?.keys[0];
@@ -35,7 +34,7 @@ export default {
 			const sort = ['-date_created'];
 
 			// process export/download
-			const { ExportService } = services;
+			const { ExportService, AssetsService } = services;
 			const schema = await getSchema({ db });
 			const exportService = new ExportService({ schema, accountability, knex: db });
 
@@ -53,8 +52,8 @@ export default {
 
 			await exportService.exportToFile('Video', { fields, filter, sort }, 'csv', { file });
 
-			// download file
-			await open(`${env?.PUBLIC_URL}/assets/${file?.id}?download`, '_blank', `${file?.filename_disk}`);
+			const assetsService = new AssetsService({ knex: db, schema });
+			await assetsService.getAsset(file?.id, { transformationParams: {} });
 		} catch (e) {
 			console.log('spiraty-sece error: ', e);
 		}
