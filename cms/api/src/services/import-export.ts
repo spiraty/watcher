@@ -450,6 +450,9 @@ Your export of ${collection} is ready. <a href="${href}">Click here to view.</a>
 			const parser = new CSVParser({
 				transforms: [CSVTransforms.flatten({ separator: '.' })],
 				header: options?.includeHeader !== false,
+				delimiter: ';',
+				withBOM: true,
+				excelStrings: true,
 			});
 
 			let string = parser.parse(input);
