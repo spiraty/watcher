@@ -555,6 +555,23 @@ function revert(values: Record<string, any>) {
 				<v-icon name="visibility" outline />
 			</v-button>
 
+			<v-button
+				v-if="collectionInfo.meta && collectionInfo.meta.singleton === false && collectionInfo.name === 'Section'"
+				v-tooltip.bottom="t('download_file')"
+				rounded
+				icon
+				secondary
+				:disabled="item === null || deleteAllowed !== true"
+				:href="
+					'/items/Video?export=csv&limit=-1&sort=video_id&fields[]=title&fields[]=views&fields[]=likes&fields[]=duration&fields[]=posted_at&fields[]=platform.Title&fields[]=section.name&fields[]=channel_url&fields[]=scanned_at&filter[_and][0][status][_neq]=archived&filter[_and][1][section][_eq]=' +
+					actualPrimaryKey
+				"
+				target="_blank"
+				@click="on"
+			>
+				<v-icon name="download" outline />
+			</v-button>
+
 			<v-dialog
 				v-if="!isNew && currentVersion === null"
 				v-model="confirmDelete"
