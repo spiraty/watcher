@@ -5,7 +5,5 @@
 
 ## 1. Khởi chạy
 
-- Mấu chốt, admin đang chạy là app nằm trong thư mục `api`. Có thể `cd api` rồi sau đó chạy `npx directus start` để khởi chạy admin project này.
-- Directus không sử dụng `yarn` hay `npm` mà sử dụng `pnpm` để làm package manager.
-- Để khởi chạy cả **api** và **admin** thì có thể dùng cli `pnpm --recursive dev`.
-- Khởi chạy một ứng dụng thì dùng `pnpm --filter api dev`.
+- Khởi chạy ứng dụng từ thư mục cms/api `npx directus start`.
+- Khởi chạy một ứng dụng từ thư mục cms `pnpm --filter api dev`.
